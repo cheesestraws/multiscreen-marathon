@@ -1,0 +1,99 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        
+        <script src="cordova.js" type="text/javascript"></script>
+		<script src="udplistener.js" type="text/javascript"></script>
+        <style type="text/css">
+        	body {
+        		background: black;
+        		color: white;
+        		margin: 0.5em;
+        	}
+        	
+        	#txt {
+        		display: none;
+        		font-size: large;
+        		font-family: courier;
+        		color: #00ff00;
+        	}
+        	
+        	#content {
+        		margin:1em;
+        	}
+        	
+        	.map {
+				margin-left: auto;
+				margin-right: auto;
+        	}
+        </style>
+        
+        <script type="text/javascript">
+        document.addEventListener('deviceready', function() {
+        	UDPListener.start(function(res) {
+        	
+        		document.getElementById("tbl").style.display = "none";
+        		document.getElementById("txt").style.display = "block";
+        		
+        		var url = "http://" + res.ip + ":5426" + res.text;
+        		
+        		document.getElementById("content").innerHTML = url;
+        		
+        		var http;
+				if (window.XMLHttpRequest) {
+					http = new XMLHttpRequest();
+				} else {
+					http = new ActiveXObject("Microsoft.XMLHTTP");
+				}
+			
+				http.onreadystatechange = function() {
+					if (http.readyState = 4 && http.status != 200) {
+						document.getElementById("content").innerHTML = "HTTP Error " + http.status + " at (" + url + ")";
+					} else if (http.readyState = 4) {
+						document.getElementById("content").innerHTML = http.responseText;
+						
+						// fix images
+						var imgs = document.getElementById("content").getElementsByTagName("img");
+						for (var i = 0; i < imgs.length; i++) {
+							if (imgs[i].src.match(/^file:\/\/\/android_asset/)) {
+								var foo = imgs[i].src.split("/");
+								imgs[i].src = url + foo[foo.length - 1];
+							}
+						}
+					}
+				};
+
+
+				http.open("GET", url, true);
+				http.send();
+			
+        		
+				window.setTimeout(function() {
+					navigator.notification.beep(1)},1000);
+        	});
+        });
+        </script>
+        
+    </head>
+    <body>
+	
+		<table style="height: 100%; width: 100%; border: 1px solid #00ff00" id="tbl">
+		<tr>
+		<td valign="middle">
+			<center>
+			<img src="img/logo.png" width="40%">
+			</center>
+		</td>
+		</tr>
+		</table>
+		
+		<div style="min-height: 100%; width: 100%; border: 1px solid #00ff00" id="txt">
+			<center><img src="img/logo.png" width="25%" style="padding: 1em"></center>
+			<div id="content"></div>
+			<div style="clear:both"></div>
+		</div>
+
+    </body>
+</html>
